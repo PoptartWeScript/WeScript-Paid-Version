@@ -58,7 +58,7 @@ namespace RocketLeague
 
                 public static readonly MenuBool AimBot = new MenuBool("AimBot", "Car To Ball", true);
 
-                public static readonly MenuKeyBind AimBot2 = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.MouseXB1, KeybindType.Hold, false);
+                public static readonly MenuKeyBind AimBot2 = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.MouseXB2, KeybindType.Hold, false);
 
 
 
@@ -398,7 +398,7 @@ namespace RocketLeague
             else
             {
                 if (Components.VisualsComponent.AimBot2.Enabled != true )
-                    Input.KeyUp(VirtualKeyCode.MouseXB1);
+                    Input.KeyUp(VirtualKeyCode.MouseXB2);
             }
 
             
