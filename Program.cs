@@ -56,11 +56,9 @@ namespace RocketLeague
 
                 public static readonly MenuBool BallToGoalESP = new MenuBool("balltogoalesp", "Draw Ball2Goal ESP", true);
 
-                public static readonly MenuBool AimBot = new MenuBool("AimBot", "Car To Ball", true);
+                public static readonly MenuKeyBind AimBot2 = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.F, KeybindType.Hold, active:false );
 
-                public static readonly MenuKeyBind AimBot2 = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.MouseXB2, KeybindType.Hold, false);
-
-
+                public static readonly MenuBool AutoJump = new MenuBool("Jump", "Jump Into Ball", true);
 
 
             }
@@ -82,10 +80,12 @@ namespace RocketLeague
                 Components.VisualsComponent.EnemyGoalESP,
 
                 Components.VisualsComponent.BallToGoalESP,
-
-                Components.VisualsComponent.AimBot,
-
+                
                 Components.VisualsComponent.AimBot2,
+
+                Components.VisualsComponent.AutoJump,
+
+
 
 
 
@@ -108,7 +108,7 @@ namespace RocketLeague
             Console.WriteLine("WeScript.app RocketLeague Assembly By Poptart && GameHackerPM 0.1.3 BETA Loaded!");
             bool returnedbool1 = WeScript.SDK.Utils.VIP.IsTopicContentUnlocked("/191-rocket-league-beta-v012/");
 
-            if(returnedbool1 == false)
+            if(returnedbool1 == true)
             {
                 Console.WriteLine("Thank you for being a VIP Member");
                 InitializeMenu();
@@ -117,7 +117,7 @@ namespace RocketLeague
                 
             }
             else
-                if (returnedbool1 == true)
+                if (returnedbool1 == false)
             {
                 Console.WriteLine("NOT A VIP MEMBER!!!");
             }
@@ -188,15 +188,15 @@ namespace RocketLeague
         private static Dictionary<long, DateTime> BoostsTimers = new Dictionary<long, DateTime>();
         private static void OnRenderer(int fps, EventArgs args)
         {
-            if (!gameProcessExists) return; 
-            if ((!isGameOnTop) && (!isOverlayOnTop)) return; 
+            if (!gameProcessExists) return;
+            if ((!isGameOnTop) && (!isOverlayOnTop)) return;
 
 
 
             var GameEngine = Memory.ReadPointer(processHandle, (IntPtr)GameBase.ToInt64() + 0x023BBEE8, isWow64Process);
             var LocalPlayersArray = Memory.ReadPointer(processHandle, (IntPtr)GameEngine.ToInt64() + 0x760, isWow64Process);
 
-            var LocalPlayer = Memory.ReadPointer(processHandle, (IntPtr)LocalPlayersArray.ToInt64(), isWow64Process); 
+            var LocalPlayer = Memory.ReadPointer(processHandle, (IntPtr)LocalPlayersArray.ToInt64(), isWow64Process);
             var PlayerController = Memory.ReadPointer(processHandle, (IntPtr)LocalPlayer.ToInt64() + 0x0078, isWow64Process);
             var WorldInfo = Memory.ReadPointer(processHandle, (IntPtr)PlayerController.ToInt64() + 0x0130, isWow64Process);
             var WorldGravityZ = Memory.ReadFloat(processHandle, (IntPtr)WorldInfo.ToInt64() + 0x061C);
@@ -206,7 +206,7 @@ namespace RocketLeague
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-           
+
 
 
             ///////////////////////////////////////////NEW UPDATE INFO///////////////////////////////////////////////////////////////////////
@@ -234,22 +234,22 @@ namespace RocketLeague
 
 
             ////////////////////////////////////////BALL INFO//////////////////////////////////////////////////////////////
-           
-            
+
+
 
             var GameBalls = Memory.ReadPointer(processHandle, (IntPtr)GameEvent.ToInt64() + 0x0840, isWow64Process);
             var Ball = Memory.ReadPointer(processHandle, (IntPtr)GameBalls.ToInt64() + 0x0000, isWow64Process);
             var BallLocation = Memory.ReadVector3(processHandle, (IntPtr)Ball.ToInt64() + 0x0090);
-            var BallPredictionTime = Memory.ReadFloat(processHandle, (IntPtr)Ball.ToInt64() + 0x08F0);
-            var BallOldLocation = Memory.ReadVector3(processHandle, (IntPtr)Ball.ToInt64() + 0x08C4);
+
 
             var Throttle = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x0958);
             var Steer = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x095C);
             var Car = Memory.ReadPointer(processHandle, (IntPtr)PlayerController.ToInt64() + 0x0948, isWow64Process);
             var CarLocation = Memory.ReadVector3(processHandle, (IntPtr)Car.ToInt64() + 0x0090);
+            var CarRotation = Memory.ReadVector3(processHandle, (IntPtr)Car.ToInt64() + 0x009C);
             var CarYaw = Memory.ReadInt32(processHandle, (IntPtr)Car.ToInt64() + 0x009C + 0x04);
 
-           
+
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             ////////////////////////////////GOAL STUFF HERE/////////////////////////////////////////////////////////////////////
@@ -260,7 +260,7 @@ namespace RocketLeague
             var EnemyGoal = Memory.ReadPointer(processHandle, (IntPtr)UGoal.ToInt64() + 0x0008, isWow64Process);
             var EnemyGoalLocation = Memory.ReadVector3(processHandle, (IntPtr)EnemyGoal.ToInt64() + 0x0120);
 
-           
+
 
 
 
@@ -271,7 +271,7 @@ namespace RocketLeague
 
             var GameShare = Memory.ReadPointer(processHandle, (IntPtr)(WorldInfo.ToInt64() + 0x0AF0), isWow64Process);
 
-            var BoostA = Memory.ReadPointer(processHandle, (IntPtr)(GameShare.ToInt64() + 0x0078), isWow64Process); 
+            var BoostA = Memory.ReadPointer(processHandle, (IntPtr)(GameShare.ToInt64() + 0x0078), isWow64Process);
 
             var Boost1 = Memory.ReadPointer(processHandle, (IntPtr)(BoostA.ToInt64() + 0x0000), isWow64Process);
             var Pill1 = Memory.ReadVector3(processHandle, (IntPtr)Boost1.ToInt64() + 0x0090);
@@ -303,7 +303,7 @@ namespace RocketLeague
 
 
             ///////////////////////////////////////////////// LOCATION ROTATION FOV ////////////////////////////////////////////////////////////////
-            
+
 
 
             var rotator = new FRotator
@@ -322,32 +322,29 @@ namespace RocketLeague
             ///////////////////////////////////////////////CAR TO BALL////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-             var aim = Math.Atan2(BallLocation.Y - CarLocation.Y, BallLocation.X - CarLocation.X);
+            var aim = Math.Atan2(BallLocation.Y - CarLocation.Y, BallLocation.X - CarLocation.X);
             var cyawconvert = (CarYaw * (Math.PI / 32768.0));
             var front_to_target = aim - cyawconvert;
-            var current_in_radians = Math.Atan2(CarLocation.Y, -CarLocation.X);
-            var target_in_radians = Math.Atan2(BallLocation.Y, -BallLocation.X);
 
-            var correction = target_in_radians - current_in_radians;
 
+
+
+
+
+
+            if (Math.Abs(front_to_target) > Math.PI)
+            {
+
+                if (front_to_target < 0)
+                    front_to_target += 2 * Math.PI;
+                else
+                    front_to_target -= 2 * Math.PI;
+            }
 
 
            
 
-                
-
-                if (Math.Abs(front_to_target) > Math.PI)
-                {
-
-                    if (front_to_target < 0)
-                        front_to_target += 2 * Math.PI;
-                    else
-                        front_to_target -= 2 * Math.PI;
-                }
-
-
-
-            if (Components.VisualsComponent.AimBot2.Enabled == true)
+            if (Components.VisualsComponent.AimBot2.Enabled)
             {
 
 
@@ -394,19 +391,59 @@ namespace RocketLeague
                     Input.KeyPress(VirtualKeyCode.LeftShift);
                 }
 
-            }
-            else
-            {
-                if (Components.VisualsComponent.AimBot2.Enabled != true )
-                    Input.KeyUp(VirtualKeyCode.MouseXB2);
+              
+
             }
 
             
+            {
+                Input.KeyUp(VirtualKeyCode.F);
+            }
+
+
+
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            ////////////////////////////////////Ball To Goal Aimbot////////////////////////////////////////////////////////////
 
 
-          
+
+            var self_bot_yaw = CarYaw;
+            var self_bot_location = CarLocation;
+            var ball_pos = BallLocation;
+            var OrangeGoal = EnemyGoalLocation.Y;
+            var BlueGoal = TeamGoalLocation.Y;
+            var toBall = self_bot_location.Y - ball_pos.Y;
+            var CloseTo = Math.Abs(BallLocation.Y - CarLocation.Y);
+            var CloseTo2 = Math.Abs(BallLocation.X - CarLocation.X);
+            var CloseTo3 = Math.Abs(BallLocation.Z - CarLocation.Z);
+
+           //Vector3 CloseToReal = new Vector3(CloseTo, CloseTo2, CloseTo3);
+
+            Console.WriteLine(CloseToReal);
+
+            if (Components.VisualsComponent.AutoJump.Enabled == true)
+            {
+                if (CloseTo <= 180)
+                {
+                    Input.KeyPress(VirtualKeyCode.RightMouse);
+
+                }
+                else
+
+                {
+                    Input.KeyUp(VirtualKeyCode.RightMouse);
+
+                }
+            }
+
+            
+            
+
+
+
+
+
 
 
 
