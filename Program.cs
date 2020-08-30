@@ -420,7 +420,7 @@ namespace RocketLeague
 
            //Vector3 CloseToReal = new Vector3(CloseTo, CloseTo2, CloseTo3);
 
-            Console.WriteLine(CloseToReal);
+            //Console.WriteLine(CloseToReal);
 
             if (Components.VisualsComponent.AutoJump.Enabled == true)
             {
