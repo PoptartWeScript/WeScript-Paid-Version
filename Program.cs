@@ -1,4 +1,5 @@
 using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,8 @@ namespace RocketLeague
         public static Menu RootMenu { get; private set; }
         public static Menu VisualsMenu { get; private set; }
 
+        
+
 
         class Components
         {
@@ -59,6 +62,8 @@ namespace RocketLeague
                 public static readonly MenuKeyBind AimBot2 = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.F, KeybindType.Hold, active:false );
 
                 public static readonly MenuBool AutoJump = new MenuBool("Jump", "Jump Into Ball", true);
+
+                public static readonly MenuBool AutoKickOff = new MenuBool("Kickoff", "AutoKickoff", true);
 
 
             }
@@ -84,6 +89,8 @@ namespace RocketLeague
                 Components.VisualsComponent.AimBot2,
 
                 Components.VisualsComponent.AutoJump,
+
+                Components.VisualsComponent.AutoKickOff,
 
 
 
@@ -171,6 +178,10 @@ namespace RocketLeague
                         GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
                         Console.WriteLine("Scan Completed! Found GameEvent!");
                         Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
+
+                        
+
+
                     }
 
 
@@ -190,6 +201,8 @@ namespace RocketLeague
         {
             if (!gameProcessExists) return;
             if ((!isGameOnTop) && (!isOverlayOnTop)) return;
+
+            
 
 
 
@@ -240,7 +253,7 @@ namespace RocketLeague
             var GameBalls = Memory.ReadPointer(processHandle, (IntPtr)GameEvent.ToInt64() + 0x0840, isWow64Process);
             var Ball = Memory.ReadPointer(processHandle, (IntPtr)GameBalls.ToInt64() + 0x0000, isWow64Process);
             var BallLocation = Memory.ReadVector3(processHandle, (IntPtr)Ball.ToInt64() + 0x0090);
-            Console.WriteLine(BallLocation);
+
 
             var Throttle = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x0958);
             var Steer = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x095C);
@@ -323,26 +336,31 @@ namespace RocketLeague
 
 
             var aim = Math.Atan2(BallLocation.Y - CarLocation.Y, BallLocation.X - CarLocation.X);
+            var aim2 = Math.Atan2(BallLocation.Y - EnemyGoalLocation.Y, BallLocation.X - EnemyGoalLocation.X);
             var cyawconvert = (CarYaw * (Math.PI / 32768.0));
             var front_to_target = aim - cyawconvert;
+            var front_to_target2 = aim2 - cyawconvert;
+
+            var CloseTo3 = Math.Abs(BallLocation.X - CarLocation.X);
+            var CloseTo = Math.Abs(BallLocation.Y - CarLocation.Y);
+            var CloseTo2 = Math.Atan2(BallLocation.X - CarLocation.X, BallLocation.Y - CarLocation.Y);
+            var CloseTo4 = Math.Abs(CloseTo - CloseTo3);
+            var Ball1 = Math.Abs(BallLocation.X);
+            
+            
 
 
 
-
-
-
-
-            if (Math.Abs(front_to_target) > Math.PI)
+            if (Math.Abs(front_to_target2) > Math.PI)
             {
 
                 if (front_to_target < 0)
                     front_to_target += 2 * Math.PI;
                 else
                     front_to_target -= 2 * Math.PI;
+               
             }
 
-
-           
 
             if (Components.VisualsComponent.AimBot2.Enabled)
             {
@@ -355,7 +373,7 @@ namespace RocketLeague
                 else
                 {
                     Input.KeyPress(VirtualKeyCode.A);
-                }
+                };
 
                 if (front_to_target > 0.16543621654)
                 {
@@ -365,10 +383,7 @@ namespace RocketLeague
                 else
                 {
                     Input.KeyPress(VirtualKeyCode.D);
-                }
-
-
-
+                };
 
 
 
@@ -378,8 +393,9 @@ namespace RocketLeague
                 }
                 else
                 {
+                 
                     Input.KeyPress(VirtualKeyCode.LeftShift);
-                }
+                };
 
                 if (front_to_target > 2)
                 {
@@ -389,17 +405,44 @@ namespace RocketLeague
                 else
                 {
                     Input.KeyPress(VirtualKeyCode.LeftShift);
+
+                };
+
+                if (Components.VisualsComponent.AutoJump.Enabled)
+
+                    if (CloseTo4 <= 100)
+                    {
+                        Input.KeyPress(VirtualKeyCode.RightMouse);
+                        
+
+                    };
+
+                if (Components.VisualsComponent.AutoKickOff.Enabled)
+                {
+                    if (BallLocation.X == 0)
+                    {
+                        Input.KeyDown(VirtualKeyCode.LeftMouse);
+                        Input.KeyDown(VirtualKeyCode.W);
+
+                    }
+                    else
+                    {
+                        if (CarLocation.X == 0 )
+                        Input.KeyPress(VirtualKeyCode.LeftMouse);
+                        Input.KeyUp(VirtualKeyCode.W);
+
+                    }
+                     
                 }
 
-              
+                
 
-            }
+
+
+
+            };
 
             
-            {
-                Input.KeyUp(VirtualKeyCode.F);
-            }
-
 
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -414,42 +457,35 @@ namespace RocketLeague
             var OrangeGoal = EnemyGoalLocation.Y;
             var BlueGoal = TeamGoalLocation.Y;
             var toBall = self_bot_location.Y - ball_pos.Y;
-            var CloseTo = Math.Abs(BallLocation.Y - CarLocation.Y);
-            var CloseTo2 = Math.Abs(BallLocation.X - CarLocation.X);
-            var CloseTo3 = Math.Abs(BallLocation.Z - CarLocation.Z);
+           
 
-           //Vector3 CloseToReal = new Vector3(CloseTo, CloseTo2, CloseTo3);
+            double distanceToBall = Math.Sqrt((BallLocation.X - CarLocation.X) * (BallLocation.X - CarLocation.X) + (BallLocation.Y - CarLocation.Y) * (BallLocation.Y - CarLocation.Y));
+            var distance = Math.Abs(BallLocation.Y - CarLocation.Y);
 
-            //Console.WriteLine(CloseToReal);
 
-            if (Components.VisualsComponent.AutoJump.Enabled == true)
-            {
-                if (CloseTo <= 180)
-                {
-                    Input.KeyPress(VirtualKeyCode.RightMouse);
 
-                }
-                else
 
-                {
-                    Input.KeyUp(VirtualKeyCode.RightMouse);
+            //Vector3 CloseToReal = new Vector3(CloseTo, CloseTo2, CloseTo3);
 
-                }
-            }
+            //Console.WriteLine(CloseTo3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             
-            
-
-
-
-
-
-
-
-
-
-
-
 
 
             Vector2 BallESP = new Vector2(0, 0);
@@ -489,8 +525,8 @@ namespace RocketLeague
                     
                 }
 
+            
 
-           
 
 
 
@@ -562,10 +598,11 @@ namespace RocketLeague
 
         }
 
-
-
+        
 
     }
+
+    
     public class FRotator
     {
         public int Pitch;
@@ -574,6 +611,7 @@ namespace RocketLeague
     }
 
     
+
 
 
 }
