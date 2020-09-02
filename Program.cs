@@ -240,7 +240,7 @@ namespace RocketLeague
             var GameBalls = Memory.ReadPointer(processHandle, (IntPtr)GameEvent.ToInt64() + 0x0840, isWow64Process);
             var Ball = Memory.ReadPointer(processHandle, (IntPtr)GameBalls.ToInt64() + 0x0000, isWow64Process);
             var BallLocation = Memory.ReadVector3(processHandle, (IntPtr)Ball.ToInt64() + 0x0090);
-
+            Console.WriteLine(BallLocation);
 
             var Throttle = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x0958);
             var Steer = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x095C);
