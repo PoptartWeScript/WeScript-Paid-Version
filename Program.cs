@@ -429,7 +429,7 @@ namespace RocketLeague
                     {
                         if (CarLocation.X == 0 )
                         Input.KeyPress(VirtualKeyCode.LeftMouse);
-                        Input.KeyUp(VirtualKeyCode.W);
+                        Input.KeyPress(VirtualKeyCode.W);
 
                     }
                      
