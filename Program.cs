@@ -2,16 +2,17 @@ using System;
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using SharpDX;
-using SharpDX.Direct3D9;
-using SharpDX.Mathematics;
-using SharpDX.XInput;
+
 using WeScriptWrapper;
 using WeScript.SDK.UI;
 using WeScript.SDK.UI.Components;
-using WeScript.SDK.Utils;
+
+
+
+
+
 
 
 
@@ -35,6 +36,13 @@ namespace RocketLeague
         public static IntPtr GameSize = IntPtr.Zero;
         public static IntPtr GameEvent = IntPtr.Zero;
         public static Vector2 GameCenterPos = new Vector2(0, 0);
+        public static bool wasWPressed = false;
+        public static bool wasAPressed = false;
+        public static bool wasDPressed = false;
+        public static bool wasLShiftPressed = false;
+        public static bool wasRMousePressed = false;
+        public static bool wasFPressed = false;
+
 
 
         public static Menu RootMenu { get; private set; }
@@ -42,10 +50,16 @@ namespace RocketLeague
 
         
 
+       
+        
+
+       
+
+        
 
         class Components
         {
-            public static readonly MenuKeyBind MainAssemblyToggle = new MenuKeyBind("mainassemblytoggle", "Toggle the whole assembly effect by pressing key:", VirtualKeyCode.Delete, KeybindType.Toggle, true);
+            public static readonly MenuKeyBind MainAssemblyToggle = new MenuKeyBind("mainassemblytoggle", "Toggle the whole assembly effect by pressing key:", WeScriptWrapper.VirtualKeyCode.Delete, KeybindType.Toggle, true);
             public static class VisualsComponent
             {
                 public static readonly MenuBool DrawTheVisuals = new MenuBool("drawthevisuals", "Enable all of the Visuals", true);
@@ -60,14 +74,14 @@ namespace RocketLeague
 
                 public static readonly MenuBool BallToGoalESP = new MenuBool("balltogoalesp", "Draw Ball2Goal ESP", true);
 
-                public static readonly MenuKeyBind BallChase = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.F, KeybindType.Hold, active:false );
+                public static readonly MenuKeyBind BallChase = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", WeScriptWrapper.VirtualKeyCode.F, KeybindType.Hold, active:false );
 
                 public static readonly MenuBool AutoJump = new MenuBool("Jump", "Jump Into Ball", true);
 
                 public static readonly MenuBool AutoKickOff = new MenuBool("Kickoff", "AutoKickoff", true);
 
                 public static readonly MenuBool AimAtGoal = new MenuBool("AimAssist", "AimAtGoal", true);
-
+               
 
             }
         }
@@ -97,6 +111,8 @@ namespace RocketLeague
 
                 Components.VisualsComponent.AimAtGoal,
 
+                
+
 
 
 
@@ -117,8 +133,8 @@ namespace RocketLeague
 
         static void Main(string[] args)
         {
-            Console.WriteLine("WeScript.app RocketLeague Assembly By Poptart && GameHackerPM 0.1.3 BETA Loaded!");
-            bool returnedbool1 = WeScript.SDK.Utils.VIP.IsTopicContentUnlocked("/191-rocket-league-beta-v012/");
+            Console.WriteLine("WeScript.app RocketLeague Assembly By Poptart && GameHackerPM 0.1.6 BETA Loaded!");
+            bool returnedbool1 = WeScript.SDK.Utils.VIP.IsTopicContentUnlocked("/191-rocket-league-beta-v016/");
 
             if(returnedbool1 == false)
             {
@@ -134,7 +150,7 @@ namespace RocketLeague
                 Console.WriteLine("NOT A VIP MEMBER!!!");
             }
 
-
+            
                 
 
            
@@ -187,7 +203,7 @@ namespace RocketLeague
                         
 
 
-                    }
+    }
 
 
                 }
@@ -224,6 +240,7 @@ namespace RocketLeague
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+            
 
 
 
@@ -279,8 +296,7 @@ namespace RocketLeague
             var EnemyGoalLocation = Memory.ReadVector3(processHandle, (IntPtr)EnemyGoal.ToInt64() + 0x0120);
 
 
-
-
+            
 
 
 
@@ -316,7 +332,7 @@ namespace RocketLeague
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+            
 
 
 
@@ -353,7 +369,7 @@ namespace RocketLeague
             var CloseTo2 = Math.Atan2(BallLocation.X - CarLocation.X, BallLocation.Y - CarLocation.Y);
             var CloseTo4 = Math.Abs(CloseTo - CloseTo3);
 
-
+            
 
 
 
@@ -383,138 +399,278 @@ namespace RocketLeague
                
             }
 
+           
+
+
 
             if (Components.VisualsComponent.BallChase.Enabled)
             {
 
-                Console.WriteLine("NoAimAssist");
-                if (front_to_target < 0)
+                
+            if (front_to_target < 0)
                 {
-                    Input.KeyDown(VirtualKeyCode.A);
+                    wasAPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.A, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
                 }
                 else
                 {
-                   
-                    Input.KeyPress(VirtualKeyCode.A);
-                };
+                    if (wasAPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.A, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasAPressed = false;
+                    }
+                    else
+                    {
+
+                    }
+                }
 
                 if (front_to_target > 0.16543621654)
                 {
-                    Input.KeyDown(VirtualKeyCode.D);
-
+                    wasDPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.D, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
                 }
                 else
                 {
-                    
-                    Input.KeyPress(VirtualKeyCode.D);
-                };
+                    if (wasDPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.D, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasDPressed = false;
+                    }
+                    else
+                    {
+
+                    }
+                }
+
+
+
+
 
 
 
                 if (front_to_target < -1.5)
                 {
-                    Input.KeyDown(VirtualKeyCode.LeftShift);
+                    wasLShiftPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
                 }
                 else
                 {
-                 
-                    Input.KeyPress(VirtualKeyCode.LeftShift);
+                    if (wasLShiftPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasLShiftPressed = false;
+                    }
+                    else
+                    {
+
+                    }
                 };
+
 
                 if (front_to_target > 2)
                 {
-                    Input.KeyDown(VirtualKeyCode.LeftShift);
+                    wasLShiftPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                }
+                else
+                {
+                    if (wasLShiftPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasLShiftPressed = false;
+                    }
+                    else
+                    {
+
+                    }
+                };
+
+                if (Components.VisualsComponent.AutoJump.Enabled)
+                {
+                    if (CloseTo4 <= 100)
+                    {
+                        wasRMousePressed = true;
+                        Input.keybd_eventWS(VirtualKeyCode.RightMouse, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                    }
+                    else
+                    {
+                        if (wasRMousePressed == true)
+                        {
+                            Input.keybd_eventWS(VirtualKeyCode.RightMouse, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                            wasRMousePressed = false;
+                        }
+                        else
+                        {
+
+                        }
+                    };
+                };
+
+                if (Components.VisualsComponent.AimAtGoal.Enabled)
+                {
+
+
+                    
+                    if (front_to_target2 < 0)
+                    {
+                        wasAPressed = true;
+                        Input.keybd_eventWS(VirtualKeyCode.A, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                    }
+                    else
+                    {
+                        if (wasAPressed == true)
+                        {
+                            Input.keybd_eventWS(VirtualKeyCode.A, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                            wasAPressed = false;
+                        }
+                        else
+                        {
+
+                        }
+                    };
+                }
+
+                if (front_to_target2 > 0.060)
+                {
+                    wasDPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.D, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                }
+                else
+                {
+                    if (wasDPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.D, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasDPressed = false;
+                    }
+                    else
+                    {
+
+                    }
+                };
+
+
+
+                if (front_to_target2 < -1.5)
+                {
+                    wasLShiftPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                }
+                else
+                {
+                    if (wasLShiftPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasLShiftPressed = false;
+                    }
+                    else
+                    {
+
+                    }
+                };
+
+                if (front_to_target2 > 2)
+
+                {
+                    wasLShiftPressed = true;
+                    Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                }
+                else
+                {
+                    if (wasLShiftPressed == true)
+                    {
+                        Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasLShiftPressed = false;
+                    }
+                    else
+                    {
+
+                    }
+                };
+
+                if (Components.VisualsComponent.AutoJump.Enabled)
+                {
+                    if (CloseTo4 <= 100)
+                    {
+                        wasRMousePressed = true;
+                        Input.keybd_eventWS(VirtualKeyCode.RightMouse, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
+                    }
+                    else
+                    {
+                        if (wasRMousePressed == true)
+                        {
+                            Input.keybd_eventWS(VirtualKeyCode.RightMouse, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                            wasRMousePressed = false;
+                        }
+                        else
+                        {
+
+                        }
+
+                    }
+                }
+
+            }
+            else
+
+            {
+                if (wasAPressed == true) 
+                {
+                    Input.keybd_eventWS(VirtualKeyCode.A, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+
+                    wasAPressed = false; 
 
                 }
                 else
                 {
-                    Input.KeyPress(VirtualKeyCode.LeftShift);
-
-                };
-
-                if (Components.VisualsComponent.AutoJump.Enabled)
-
-                    if (CloseTo4 <= 100)
-                    {
-                        Input.KeyPress(VirtualKeyCode.RightMouse);
-                        
-
-                    };
-
-
-                if (Components.VisualsComponent.AimAtGoal.Enabled)
-
-                {
-
-                    Console.WriteLine("UsingAimBot");
-                    if (front_to_target2 < 0)
-                    {
-                        Input.KeyDown(VirtualKeyCode.A);
-                    }
-                    else
+                    if (wasDPressed == true) 
                     {
 
-                        Input.KeyPress(VirtualKeyCode.A);
-
-                    };
-
-                    if (front_to_target2 > 0.060)
-                    {
-                        Input.KeyDown(VirtualKeyCode.D);
+                        Input.keybd_eventWS(VirtualKeyCode.D, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                        wasDPressed = false; 
 
                     }
                     else
                     {
-
-                        Input.KeyPress(VirtualKeyCode.D);
-                    };
-
-
-
-                    if (front_to_target2 < -1.5)
-                    {
-                        Input.KeyDown(VirtualKeyCode.LeftShift);
-                    }
-                    else
-                    {
-
-                        Input.KeyPress(VirtualKeyCode.LeftShift);
-                    };
-
-                    if (front_to_target2 > 2)
-                    {
-                        Input.KeyDown(VirtualKeyCode.LeftShift);
-
-                    }
-                    else
-                    {
-                        Input.KeyPress(VirtualKeyCode.LeftShift);
-
-                    };
-
-                    if (Components.VisualsComponent.AutoJump.Enabled)
-
-                        if (CloseTo4 <= 100)
+                        if (wasLShiftPressed == true) 
                         {
-                            Input.KeyPress(VirtualKeyCode.RightMouse);
+                            Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
 
+                            wasLShiftPressed = false; 
 
                         }
+                        else
+                        {
+                            if (wasRMousePressed == true) 
+                            {
+
+                                Input.keybd_eventWS(VirtualKeyCode.RightMouse, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
+                                wasRMousePressed = false;
+
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                    }
                 }
-
-
-
-                
-
-
-
-
-
-
             }
 
-            
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -559,7 +715,6 @@ namespace RocketLeague
                 }
 
             
-
 
 
 
