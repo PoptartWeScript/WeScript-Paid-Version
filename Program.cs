@@ -18,6 +18,7 @@ using WeScript.SDK.Utils;
 
 
 
+
 namespace RocketLeague
 {
     public static class Program
@@ -59,11 +60,13 @@ namespace RocketLeague
 
                 public static readonly MenuBool BallToGoalESP = new MenuBool("balltogoalesp", "Draw Ball2Goal ESP", true);
 
-                public static readonly MenuKeyBind AimBot2 = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.F, KeybindType.Hold, active:false );
+                public static readonly MenuKeyBind BallChase = new MenuKeyBind("AimtoBall", "Hold Hotkey to Force Car to Ball", VirtualKeyCode.F, KeybindType.Hold, active:false );
 
                 public static readonly MenuBool AutoJump = new MenuBool("Jump", "Jump Into Ball", true);
 
                 public static readonly MenuBool AutoKickOff = new MenuBool("Kickoff", "AutoKickoff", true);
+
+                public static readonly MenuBool AimAtGoal = new MenuBool("AimAssist", "AimAtGoal", true);
 
 
             }
@@ -86,11 +89,13 @@ namespace RocketLeague
 
                 Components.VisualsComponent.BallToGoalESP,
                 
-                Components.VisualsComponent.AimBot2,
+                Components.VisualsComponent.BallChase,
 
                 Components.VisualsComponent.AutoJump,
 
                 Components.VisualsComponent.AutoKickOff,
+
+                Components.VisualsComponent.AimAtGoal,
 
 
 
@@ -333,10 +338,12 @@ namespace RocketLeague
 
 
             ///////////////////////////////////////////////CAR TO BALL////////////////////////////////////////////////////////////////////////////////////////////////
-
+            var bias_direction = (CarLocation - EnemyGoalLocation);
+            bias_direction.Normalize();
+            Vector3 target = BallLocation + bias_direction * 150;
 
             var aim = Math.Atan2(BallLocation.Y - CarLocation.Y, BallLocation.X - CarLocation.X);
-            var aim2 = Math.Atan2(BallLocation.Y - EnemyGoalLocation.Y, BallLocation.X - EnemyGoalLocation.X);
+            var aim2 = Math.Atan2(target.Y - CarLocation.Y, target.X - CarLocation.X);
             var cyawconvert = (CarYaw * (Math.PI / 32768.0));
             var front_to_target = aim - cyawconvert;
             var front_to_target2 = aim2 - cyawconvert;
@@ -345,13 +352,28 @@ namespace RocketLeague
             var CloseTo = Math.Abs(BallLocation.Y - CarLocation.Y);
             var CloseTo2 = Math.Atan2(BallLocation.X - CarLocation.X, BallLocation.Y - CarLocation.Y);
             var CloseTo4 = Math.Abs(CloseTo - CloseTo3);
-            var Ball1 = Math.Abs(BallLocation.X);
-            
-            
+
+
+
+
 
 
 
             if (Math.Abs(front_to_target2) > Math.PI)
+            {
+
+                if (front_to_target2 < 0)
+                    front_to_target2 += 2 * Math.PI;
+                else
+                    front_to_target2 -= 2 * Math.PI;
+
+            }
+
+
+
+
+
+            if (Math.Abs(front_to_target) > Math.PI)
             {
 
                 if (front_to_target < 0)
@@ -362,16 +384,17 @@ namespace RocketLeague
             }
 
 
-            if (Components.VisualsComponent.AimBot2.Enabled)
+            if (Components.VisualsComponent.BallChase.Enabled)
             {
 
-
+                Console.WriteLine("NoAimAssist");
                 if (front_to_target < 0)
                 {
                     Input.KeyDown(VirtualKeyCode.A);
                 }
                 else
                 {
+                   
                     Input.KeyPress(VirtualKeyCode.A);
                 };
 
@@ -382,6 +405,7 @@ namespace RocketLeague
                 }
                 else
                 {
+                    
                     Input.KeyPress(VirtualKeyCode.D);
                 };
 
@@ -417,84 +441,93 @@ namespace RocketLeague
 
                     };
 
-                if (Components.VisualsComponent.AutoKickOff.Enabled)
+
+                if (Components.VisualsComponent.AimAtGoal.Enabled)
+
                 {
-                    if (BallLocation.X == 0)
+
+                    Console.WriteLine("UsingAimBot");
+                    if (front_to_target2 < 0)
                     {
-                        Input.KeyDown(VirtualKeyCode.LeftMouse);
-                        Input.KeyDown(VirtualKeyCode.W);
+                        Input.KeyDown(VirtualKeyCode.A);
+                    }
+                    else
+                    {
+
+                        Input.KeyPress(VirtualKeyCode.A);
+
+                    };
+
+                    if (front_to_target2 > 0.060)
+                    {
+                        Input.KeyDown(VirtualKeyCode.D);
 
                     }
                     else
                     {
-                        if (CarLocation.X == 0 )
-                        Input.KeyPress(VirtualKeyCode.LeftMouse);
-                        Input.KeyPress(VirtualKeyCode.W);
+
+                        Input.KeyPress(VirtualKeyCode.D);
+                    };
+
+
+
+                    if (front_to_target2 < -1.5)
+                    {
+                        Input.KeyDown(VirtualKeyCode.LeftShift);
+                    }
+                    else
+                    {
+
+                        Input.KeyPress(VirtualKeyCode.LeftShift);
+                    };
+
+                    if (front_to_target2 > 2)
+                    {
+                        Input.KeyDown(VirtualKeyCode.LeftShift);
 
                     }
-                     
+                    else
+                    {
+                        Input.KeyPress(VirtualKeyCode.LeftShift);
+
+                    };
+
+                    if (Components.VisualsComponent.AutoJump.Enabled)
+
+                        if (CloseTo4 <= 100)
+                        {
+                            Input.KeyPress(VirtualKeyCode.RightMouse);
+
+
+                        }
                 }
+
+
 
                 
 
 
 
 
-            };
+
+
+            }
 
             
+        
 
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             ////////////////////////////////////Ball To Goal Aimbot////////////////////////////////////////////////////////////
 
-
-
-            var self_bot_yaw = CarYaw;
-            var self_bot_location = CarLocation;
-            var ball_pos = BallLocation;
-            var OrangeGoal = EnemyGoalLocation.Y;
-            var BlueGoal = TeamGoalLocation.Y;
-            var toBall = self_bot_location.Y - ball_pos.Y;
-           
-
-            double distanceToBall = Math.Sqrt((BallLocation.X - CarLocation.X) * (BallLocation.X - CarLocation.X) + (BallLocation.Y - CarLocation.Y) * (BallLocation.Y - CarLocation.Y));
-            var distance = Math.Abs(BallLocation.Y - CarLocation.Y);
-
-
-
-
-            //Vector3 CloseToReal = new Vector3(CloseTo, CloseTo2, CloseTo3);
-
-            //Console.WriteLine(CloseTo3);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-
-
             Vector2 BallESP = new Vector2(0, 0);
-            if (Renderer.WorldToScreenUE3(BallLocation, out BallESP, Location, rotator.Pitch, rotator.Yaw, rotator.Roll, LastCamFov, wndMargins, wndSize))
+            if (Renderer.WorldToScreenUE3(target, out BallESP, Location, rotator.Pitch, rotator.Yaw, rotator.Roll, LastCamFov, wndMargins, wndSize))
             {
                 if (Components.VisualsComponent.DrawBallESP.Enabled)
                 {
-                    
-                    Renderer.DrawCircleFilled(BallESP, 8, Color.Red, 8);
+
+                    Renderer.DrawCircleFilled(BallESP, 6, Color.Red, 6);
                 }
             }
 
