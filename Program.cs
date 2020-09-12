@@ -86,7 +86,7 @@ namespace RocketLeague
 
                 public static readonly MenuBool AutoScan = new MenuBool("Rescan", "Scan during new match", true);
 
-                public static readonly MenuSlider normalMaxSpeed = new MenuSlider("normalMaxSpeed", "normalMaxSpeed", 500, 95, 500);
+                
 
 
             }
