@@ -81,7 +81,13 @@ namespace RocketLeague
                 public static readonly MenuBool AutoKickOff = new MenuBool("Kickoff", "AutoKickoff", true);
 
                 public static readonly MenuBool AimAtGoal = new MenuBool("AimAssist", "AimAtGoal", true);
-               
+
+                public static readonly MenuBool MatchBallSpeed = new MenuBool("MatchSpeed", "MatchBallSpeed", true);
+
+                public static readonly MenuBool AutoScan = new MenuBool("Rescan", "Scan during new match", true);
+
+                public static readonly MenuSlider normalMaxSpeed = new MenuSlider("normalMaxSpeed", "normalMaxSpeed", 500, 95, 500);
+
 
             }
         }
@@ -111,7 +117,9 @@ namespace RocketLeague
 
                 Components.VisualsComponent.AimAtGoal,
 
-                
+                Components.VisualsComponent.AutoScan,
+
+
 
 
 
@@ -147,14 +155,14 @@ namespace RocketLeague
             else
                 if (returnedbool1 == true)
             {
-                Console.WriteLine("NOT A VIP MEMBER!!!");
+                Console.WriteLine("NOT A VIP MEMBER!!!, You Have the wrong link");
             }
 
-            
-                
 
-           
             
+
+
+
         }
 
         private static void OnTick(int counter, EventArgs args)
@@ -192,18 +200,14 @@ namespace RocketLeague
                     GameBase = Memory.GetModule(processHandle, null, isWow64Process);
 
 
-                    if (GameEvent == IntPtr.Zero)
-                    {
-                        Console.WriteLine($"[{DateTime.Now}] Scanning.");
-                        string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
-                        GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
-                        Console.WriteLine("Scan Completed! Found GameEvent!");
-                        Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
-
-                        
-
-
-    }
+                    //if (GameEvent == IntPtr.Zero)
+                    //{
+                    //    Console.WriteLine($"[{DateTime.Now}] Scanning.");
+                    //    string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
+                    //    GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
+                    //    Console.WriteLine("Scan Completed! Found GameEvent!");
+                    //    Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
+                    //}
 
 
                 }
@@ -223,6 +227,15 @@ namespace RocketLeague
             if (!gameProcessExists) return;
             if ((!isGameOnTop) && (!isOverlayOnTop)) return;
 
+            if (GameEvent == IntPtr.Zero)
+            {
+                Console.WriteLine($"[{DateTime.Now}] Scanning.");
+                string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
+                GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
+                Console.WriteLine("Scan Completed! Found GameEvent!");
+                Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
+                
+            }
             
 
 
@@ -238,11 +251,30 @@ namespace RocketLeague
             var GlobalGravityZ = Memory.ReadFloat(processHandle, (IntPtr)WorldInfo.ToInt64() + 0x0624);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            ///
 
+            if (Components.VisualsComponent.AutoScan.Enabled)
+            {
+                var GameTimeInSeconds = Memory.ReadInt64(processHandle, (IntPtr)GameEvent.ToInt64() + 0x07D8);
+               
+                if (GameTimeInSeconds > 300)
+                {
+                    Console.WriteLine($"[{DateTime.Now}] Scanning.");
+                    string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
+                    GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
+                    Console.WriteLine("Scan Completed! Found GameEvent!");
+                    Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
+                }
 
-            
-
-
+                if (GameTimeInSeconds <= 0)
+                {
+                    Console.WriteLine($"[{DateTime.Now}] Scanning.");
+                    string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
+                    GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
+                    Console.WriteLine("Scan Completed! Found GameEvent!");
+                    Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
+                }
+            }
 
             ///////////////////////////////////////////NEW UPDATE INFO///////////////////////////////////////////////////////////////////////
 
@@ -270,11 +302,13 @@ namespace RocketLeague
 
             ////////////////////////////////////////BALL INFO//////////////////////////////////////////////////////////////
 
-
+            //var GameTimeInSeconds = Memory.ReadInt64(processHandle, (IntPtr)GameEvent.ToInt64() + 0x07D8);
+            
 
             var GameBalls = Memory.ReadPointer(processHandle, (IntPtr)GameEvent.ToInt64() + 0x0840, isWow64Process);
             var Ball = Memory.ReadPointer(processHandle, (IntPtr)GameBalls.ToInt64() + 0x0000, isWow64Process);
             var BallLocation = Memory.ReadVector3(processHandle, (IntPtr)Ball.ToInt64() + 0x0090);
+            var BallVelocity = Memory.ReadVector3(processHandle, (IntPtr)Ball.ToInt64() + 0x01A8);
 
 
             var Throttle = Memory.ReadFloat(processHandle, (IntPtr)PlayerController.ToInt64() + 0x0958);
@@ -283,8 +317,9 @@ namespace RocketLeague
             var CarLocation = Memory.ReadVector3(processHandle, (IntPtr)Car.ToInt64() + 0x0090);
             var CarRotation = Memory.ReadVector3(processHandle, (IntPtr)Car.ToInt64() + 0x009C);
             var CarYaw = Memory.ReadInt32(processHandle, (IntPtr)Car.ToInt64() + 0x009C + 0x04);
+            var CarVelocity = Memory.ReadVector3(processHandle, (IntPtr)Car.ToInt64() + 0x01A8);
 
-
+           
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             ////////////////////////////////GOAL STUFF HERE/////////////////////////////////////////////////////////////////////
@@ -352,11 +387,11 @@ namespace RocketLeague
 
             /////////////////////////////////////////////// WORLD TO SCREEN ///////////////////////////////////////////////////////////////////////////////////////////
 
-
+             
             ///////////////////////////////////////////////CAR TO BALL////////////////////////////////////////////////////////////////////////////////////////////////
             var bias_direction = (CarLocation - EnemyGoalLocation);
             bias_direction.Normalize();
-            Vector3 target = BallLocation + bias_direction * 150;
+            Vector3 target = BallLocation + bias_direction * 140;
 
             var aim = Math.Atan2(BallLocation.Y - CarLocation.Y, BallLocation.X - CarLocation.X);
             var aim2 = Math.Atan2(target.Y - CarLocation.Y, target.X - CarLocation.X);
@@ -369,10 +404,10 @@ namespace RocketLeague
             var CloseTo2 = Math.Atan2(BallLocation.X - CarLocation.X, BallLocation.Y - CarLocation.Y);
             var CloseTo4 = Math.Abs(CloseTo - CloseTo3);
 
+
+
+
             
-
-
-
 
 
             if (Math.Abs(front_to_target2) > Math.PI)
@@ -446,29 +481,13 @@ namespace RocketLeague
 
 
 
+                
 
 
-
-                if (front_to_target < -1.5)
-                {
-                    wasLShiftPressed = true;
-                    Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
-                }
-                else
-                {
-                    if (wasLShiftPressed == true)
-                    {
-                        Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYUP, IntPtr.Zero);
-                        wasLShiftPressed = false;
-                    }
-                    else
-                    {
-
-                    }
-                };
+                
 
 
-                if (front_to_target > 2)
+                if (front_to_target > 2.2)
                 {
                     wasLShiftPressed = true;
                     Input.keybd_eventWS(VirtualKeyCode.LeftShift, 0, KEYEVENTF.KEYDOWN, IntPtr.Zero);
@@ -549,7 +568,7 @@ namespace RocketLeague
                     }
                 };
 
-
+                
 
                 if (front_to_target2 < -1.5)
                 {
