@@ -200,14 +200,14 @@ namespace RocketLeague
                     GameBase = Memory.GetModule(processHandle, null, isWow64Process);
 
 
-                    //if (GameEvent == IntPtr.Zero)
-                    //{
-                    //    Console.WriteLine($"[{DateTime.Now}] Scanning.");
-                    //    string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
-                    //    GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
-                    //    Console.WriteLine("Scan Completed! Found GameEvent!");
-                    //    Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
-                    //}
+                    if (GameEvent == IntPtr.Zero)
+                    {
+                        Console.WriteLine($"[{DateTime.Now}] Scanning.");
+                        string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
+                        GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
+                        Console.WriteLine("Scan Completed! Found GameEvent!");
+                        Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
+                    }
 
 
                 }
@@ -227,15 +227,7 @@ namespace RocketLeague
             if (!gameProcessExists) return;
             if ((!isGameOnTop) && (!isOverlayOnTop)) return;
 
-            if (GameEvent == IntPtr.Zero)
-            {
-                Console.WriteLine($"[{DateTime.Now}] Scanning.");
-                string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
-                GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
-                Console.WriteLine("Scan Completed! Found GameEvent!");
-                Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
-                
-            }
+            
             
 
 
@@ -253,28 +245,7 @@ namespace RocketLeague
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             ///
 
-            if (Components.VisualsComponent.AutoScan.Enabled)
-            {
-                var GameTimeInSeconds = Memory.ReadInt64(processHandle, (IntPtr)GameEvent.ToInt64() + 0x07D8);
-               
-                if (GameTimeInSeconds > 300)
-                {
-                    Console.WriteLine($"[{DateTime.Now}] Scanning.");
-                    string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
-                    GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
-                    Console.WriteLine("Scan Completed! Found GameEvent!");
-                    Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
-                }
-
-                if (GameTimeInSeconds <= 0)
-                {
-                    Console.WriteLine($"[{DateTime.Now}] Scanning.");
-                    string sig = "C0 1F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 04 00 10 10 01 00 00 02 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF ?? ?? ?? ?? FF FF FF FF ?? ?? ?? ?? ?? ?? ?? ?? F9 EC 00 00 ?? 00 00 00";
-                    GameEvent = Memory.FindSignatureBase(processHandle, GameBase, GameSize, sig);
-                    Console.WriteLine("Scan Completed! Found GameEvent!");
-                    Console.WriteLine("MAKE SURE TO PRESS F5 WHEN ENTERING A NEW GAME!!");
-                }
-            }
+            
 
             ///////////////////////////////////////////NEW UPDATE INFO///////////////////////////////////////////////////////////////////////
 
