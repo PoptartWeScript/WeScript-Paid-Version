@@ -438,7 +438,7 @@ namespace RocketLeague
             }
 
 
-            Console.WriteLine(CarLocation);
+            
 
 
             if (Components.VisualsComponent.BallChase.Enabled)
