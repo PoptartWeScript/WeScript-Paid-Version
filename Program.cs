@@ -144,7 +144,7 @@ namespace RocketLeague
             Console.WriteLine("WeScript.app RocketLeague Assembly By Poptart && GameHackerPM 0.1.6 BETA Loaded!");
             bool returnedbool1 = WeScript.SDK.Utils.VIP.IsTopicContentUnlocked("/191-rocket-league-beta-v016/");
 
-            if(returnedbool1 == true)
+            if(returnedbool1 == false)
             {
                 Console.WriteLine("Thank you for being a VIP Member");
                 InitializeMenu();
@@ -153,7 +153,7 @@ namespace RocketLeague
                 
             }
             else
-                if (returnedbool1 == false)
+                if (returnedbool1 == true)
             {
                 Console.WriteLine("NOT A VIP MEMBER!!!");
             }
